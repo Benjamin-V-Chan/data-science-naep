@@ -33,7 +33,6 @@ first_subject_grade = None
 
 print(input_csv_files)
 
-
 # Process each CSV file
 for file in input_csv_files:
     
@@ -58,4 +57,37 @@ for file in input_csv_files:
 
     # Assign correct column names
     df.columns = ["Year", "Jurisdiction", "Days Absent", "Average Scale Score"]
-    
+
+    # Drop rows that don't contain valid year information
+    df = df[df["Year"].astype(str).str.contains(r"^\d{4}$", na=False)]
+
+    # Fill missing values in "Days Absent" with ""
+    df["Days Absent"] = df["Days Absent"].fillna("")
+
+    # Convert intervals to standardized labels
+    df["Days Absent"] = df["Days Absent"].map(interval_mapping).fillna(df["Days Absent"])
+
+    # Convert "Average Scale Score" to float
+    df["Average Scale Score"] = pd.to_numeric(df["Average Scale Score"], errors="coerce")
+
+    # Initialize a row with NaN values for all intervals
+    new_row = {col: None for col in final_df.columns}
+    new_row["Name"] = name
+
+    # Populate the row with the correct absence interval values
+    for _, row in df.iterrows():
+        interval = row["Days Absent"]
+        score = row["Average Scale Score"]
+        if interval in standard_intervals:
+            new_row[interval] = score
+
+    # Append to final DataFrame
+    final_df = pd.concat([final_df, pd.DataFrame([new_row])], ignore_index=True)
+
+# Save the consolidated data with a dynamic filename
+output_filename = "consolidated_data.csv"
+output_path = os.path.join(data_folder, output_filename)
+final_df.to_csv(output_path, index=False)
+
+# Print completion message
+print(f"Consolidated CSV saved at: {output_path}")
