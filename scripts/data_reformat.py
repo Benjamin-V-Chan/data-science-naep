@@ -43,5 +43,5 @@ for input_csv_path in input_csv_files:
     grade = grade_split[-1]
     print(grade)
 
-    output_csv_path = f"data/cleaned{subject}{grade}"
+    output_csv_path = f"data/cleaned/{subject}{grade}"
     df.to_csv(output_csv_path, index=False)
