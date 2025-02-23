@@ -32,3 +32,30 @@ final_df = pd.DataFrame(columns=["Name"] + standard_intervals)
 first_subject_grade = None
 
 print(input_csv_files)
+
+
+# Process each CSV file
+for file in input_csv_files:
+    
+    print(f"\nProcessing: {file}")
+
+    # Extract subject and grade level from the filename (handles "U.S. HistoryX")
+    filename_without_ext = os.path.splitext(file)[0]  # Remove file extension
+    match = re.match(r"(.+?)(\d+)$", filename_without_ext)  # Extracts multi-word subjects + grade level
+    
+    if match:
+        subject = match.group(1).strip()  # Extracts subject (multi-word friendly)
+        grade_level = match.group(2)      # Extracts grade level
+        name = f"{subject}{grade_level}"  # Combine into Name column
+        if first_subject_grade is None:
+            first_subject_grade = name  # Store first dataset's name for final CSV filename
+    else:
+        print(f"Skipping {file}: Filename format not recognized")
+        continue
+
+    # Read CSV, skipping blank lines and unnecessary headers
+    df = pd.read_csv(os.path.join(data_folder, file), skip_blank_lines=True, header=None)
+
+    # Assign correct column names
+    df.columns = ["Year", "Jurisdiction", "Days Absent", "Average Scale Score"]
+    
