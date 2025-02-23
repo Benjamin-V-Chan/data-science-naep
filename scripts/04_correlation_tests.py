@@ -59,3 +59,61 @@ with open(correlation_results_path, "w", encoding="utf-8") as f:
         f.write(f"{subject}: {drop:.2f}%\n")
 
 print(f"Correlation strength results saved to: {correlation_results_path}")
+
+### Bar Chart - Correlation Strength ###
+plt.figure(figsize=(12, 6))
+sns.barplot(x=correlation_results_sorted.index, y=correlation_results_sorted.values, palette="coolwarm")
+plt.axhline(y=0, color="black", linestyle="--")
+plt.xlabel("Subjects")
+plt.ylabel("Pearson Correlation with Absenteeism")
+plt.title("Correlation Strength: Absenteeism Impact on Scale Scores")
+plt.xticks(rotation=90)
+plt.grid(True)
+barchart_path = os.path.join(output_folder, "correlation_strength_bar_chart.png")
+plt.savefig(barchart_path, dpi=300, bbox_inches="tight")
+plt.show()
+
+### Heatmap - Correlation Matrix ###
+plt.figure(figsize=(10, 6))
+sns.heatmap(df[interval_cols].corr(), annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
+plt.title("Heatmap: Absenteeism vs. Scale Scores")
+heatmap_path = os.path.join(output_folder, "correlation_heatmap.png")
+plt.savefig(heatmap_path, dpi=300, bbox_inches="tight")
+plt.show()
+
+### Line Plot - Score Trends Across Intervals ###
+plt.figure(figsize=(12, 6))
+for subject in df.index:
+    plt.plot(interval_cols, df.loc[subject, interval_cols], marker="o", label=subject)
+plt.xlabel("Absenteeism Interval (Ordinal)")
+plt.ylabel("Scale Score")
+plt.title("Scale Score Decline Across Absenteeism Intervals")
+plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+plt.grid(True)
+lineplot_path = os.path.join(output_folder, "lineplot_score_trend.png")
+plt.savefig(lineplot_path, dpi=300, bbox_inches="tight")
+plt.show()
+
+### Bar Chart - Percentage Drop ###
+plt.figure(figsize=(12, 6))
+sns.barplot(x=percentage_drop_sorted.index, y=percentage_drop_sorted.values, palette="magma")
+plt.xlabel("Subjects")
+plt.ylabel("Percentage Drop in Scores (%)")
+plt.title("Percentage Drop in Scores: 0 Absences vs. More than 10 Absences")
+plt.xticks(rotation=90)
+plt.grid(True)
+percentage_drop_path = os.path.join(output_folder, "percentage_drop_bar_chart.png")
+plt.savefig(percentage_drop_path, dpi=300, bbox_inches="tight")
+plt.show()
+
+### Box Plot - Score Distribution per Absenteeism Interval ###
+df_melted = df[interval_cols].melt(var_name="Absenteeism Interval", value_name="Scale Score")
+plt.figure(figsize=(12, 6))
+sns.boxplot(x="Absenteeism Interval", y="Scale Score", data=df_melted, order=interval_cols)
+plt.title("Distribution of Scale Scores by Absenteeism Interval")
+plt.grid(True)
+boxplot_path = os.path.join(output_folder, "boxplot_scale_distribution.png")
+plt.savefig(boxplot_path, dpi=300, bbox_inches="tight")
+plt.show()
+
+print(f"All visualizations saved in: {output_folder}")
