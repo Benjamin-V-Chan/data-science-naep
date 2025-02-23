@@ -3,10 +3,11 @@ import os
 import re
 
 # Define the folder containing the CSV files
-data_folder = "data/cleaned/"  # Change this to your actual folder path
+input_data_folder = "data/cleaned/"  # Change this to your actual folder path
+output_data_folder = "outputs/consolidated_data/"
 
 # Get a list of all CSV files in the folder
-input_csv_files = [f for f in os.listdir(data_folder) if f.endswith(".csv")]
+input_csv_files = [f for f in os.listdir(input_data_folder) if f.endswith(".csv")]
 
 # Mapping for days absent intervals to ensure consistency
 interval_mapping = {
@@ -53,7 +54,7 @@ for file in input_csv_files:
         continue
 
     # Read CSV, skipping blank lines and unnecessary headers
-    df = pd.read_csv(os.path.join(data_folder, file), skip_blank_lines=True, header=None)
+    df = pd.read_csv(os.path.join(input_data_folder, file), skip_blank_lines=True, header=None)
 
     # Assign correct column names
     df.columns = ["Year", "Jurisdiction", "Days Absent", "Average Scale Score"]
@@ -86,7 +87,7 @@ for file in input_csv_files:
 
 # Save the consolidated data with a dynamic filename
 output_filename = "consolidated_data.csv"
-output_path = os.path.join(data_folder, output_filename)
+output_path = os.path.join(output_data_folder, output_filename)
 final_df.to_csv(output_path, index=False)
 
 # Print completion message

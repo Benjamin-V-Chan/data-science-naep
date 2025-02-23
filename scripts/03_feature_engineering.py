@@ -1,50 +1,59 @@
 import pandas as pd
 import os
 
-# Define file paths for data storage
+# Define file paths
+input_data_folder = "outputs/consolidated_data/"  # Adjust to your folder path
+output_data_folder = "outputs/consolidated_data/"
+consolidated_file = os.path.join(input_data_folder, "consolidated_data.csv")
 
-# Load the consolidated dataset into a DataFrame
+# Load consolidated dataset
+df = pd.read_csv(consolidated_file)
 
-# Extract subject names and grade levels from the "Name" column
+# Extract subject names and grade levels
+df["Subject"] = df["Name"].str.extract(r"([A-Za-z\s.]+)")
+df["Grade"] = df["Name"].str.extract(r"(\d+)$").astype(float)
 
-# Convert grade values to integers for numerical operations
+# Define subjects to average
+subjects = ["Mathematics", "Reading", "Science", "U.S. History", "Writing"]
 
-# Define standard subject names for reference
+# Define interval columns (all except "Name", "Subject", and "Grade")
+interval_cols = [col for col in df.columns if col not in ["Name", "Subject", "Grade"]]
 
-# Initialize an empty list to store new computed rows
+# Initialize a list for new rows
+new_rows = []
 
-# Function to compute the average scores for a given subject and grade level
-    # Filter data for the specified subject
-    # Further filter by grade if specified
-    # Compute mean values for numeric columns (excluding "Name", "Subject", "Grade")
+# Compute subject-wise averages (across all grades)
+for subject in subjects:
+    sub_df = df[df["Subject"].str.strip() == subject]
+    avg_scores = sub_df[interval_cols].mean().to_dict()  # Compute mean scale scores
+    new_rows.append({"Name": subject, **avg_scores})
 
-# Function to compute combined averages for STEM and English subjects
-    # Filter data for the first subject
-    # Filter data for the second subject
-    # Further filter by grade if specified
-    # Sum corresponding values from both subjects
-    # Compute the average after summing
+# Compute "Total" row (average of Reading, Science, U.S. History, and Writing)
+total_df = df[df["Subject"].isin(["Reading", "Science", "U.S. History", "Writing"])]
+total_avg_scores = total_df[interval_cols].mean().to_dict()
+new_rows.append({"Name": "Total", **total_avg_scores})
 
-# Generate subject-wise averages for specified grades
-    # Loop through each subject
-    # Loop through each grade level
-    # Compute and store the average scores
+# Compute Grade-Specific Totals (Avg of Mathematics, Reading, Science, U.S. History, Writing for each grade)
+for grade in [4, 8, 12]:
+    grade_df = df[(df["Grade"] == grade) & df["Subject"].isin(subjects)]
+    grade_avg_scores = grade_df[interval_cols].mean().to_dict()
+    new_rows.append({"Name": f"Total{int(grade)}", **grade_avg_scores})
 
-# Generate STEM (Mathematics + Science) and English (Writing + Reading) averages
-    # Loop through each grade level
-    # Compute and store the STEM average
-    # Compute and store the English average
+# Convert new rows to DataFrame
+new_df = pd.DataFrame(new_rows)
 
-# Generate total scores (Sum of all subjects, then average)
-    # Loop through each grade level
-    # Compute total scores by summing across all subjects
-    # Compute the average for the total scores
-    # Store the computed total scores
+# Remove 'Subject' and 'Grade' columns before merging
+df = df.drop(columns=["Subject", "Grade"], errors="ignore")
 
-# Convert new computed rows into a DataFrame
+# Ensure new rows match original column structure
+new_df = new_df[df.columns]
 
-# Append newly computed rows to the original dataset
+# Append the new rows to the original DataFrame
+final_df = pd.concat([df, new_df], ignore_index=True)
 
-# Save the updated dataset with new computed features
+# Save the new dataset
+output_file = os.path.join(output_data_folder, "consolidated_subject_averages.csv")
+final_df.to_csv(output_file, index=False)
 
-# Print completion message with output file path
+# Print completion message
+print(f"Updated CSV with original data + subject & grade-specific totals saved at: {output_file}")
